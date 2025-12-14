@@ -225,6 +225,22 @@ function ImportedParts() {
 export const ThreeScene: React.FC = () => {
     const styles = useStyles();
     const showGrid = useAppSelector((state) => state.settings.showGrid);
+    const [cameraPosition, setCameraPosition] = useState({ x: 0, y: 0 });
+
+    // Component inside Canvas to track camera
+    function CameraTracker() {
+        const { camera } = useThree();
+
+        useEffect(() => {
+            const interval = setInterval(() => {
+                setCameraPosition({ x: camera.position.x, y: camera.position.y });
+            }, 50); // Update every 50ms
+
+            return () => clearInterval(interval);
+        }, [camera]);
+
+        return null;
+    }
 
     return (
         <div className={styles.container}>
@@ -244,6 +260,8 @@ export const ThreeScene: React.FC = () => {
                     <SheetBoundary width={24} height={12} />
                     <ImportedParts />
 
+                    <CameraTracker />
+
                     <OrbitControls
                         enableDamping
                         dampingFactor={0.05}
@@ -252,15 +270,15 @@ export const ThreeScene: React.FC = () => {
                         zoomSpeed={0.5}
                         panSpeed={0.5}
                         mouseButtons={{
-                            LEFT: undefined, // Left-click for selection only
+                            LEFT: undefined,
                             MIDDLE: THREE.MOUSE.DOLLY,
-                            RIGHT: THREE.MOUSE.PAN // Right-click to pan canvas
+                            RIGHT: THREE.MOUSE.PAN
                         }}
                     />
                 </Canvas>
             </div>
 
-            <RulerOverlay />
+            <RulerOverlay panX={cameraPosition.x} panY={cameraPosition.y} />
             <ScaleIndicator />
         </div>
     );

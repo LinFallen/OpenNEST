@@ -74,40 +74,48 @@ export const RulerOverlay: React.FC<RulerOverlayProps> = ({
     // Generate tick marks for horizontal ruler
     const generateHorizontalTicks = (): React.ReactElement[] => {
         const ticks: React.ReactElement[] = [];
-        const pixelsPerUnit = zoom; // pixels per decimeter
-        const viewportWidth = window.innerWidth;
+        const pixelsPerUnit = zoom;
+        const viewportWidth = window.innerWidth - 40;
 
-        // Major ticks every 5 decimeters (500mm)
-        for (let i = -50; i <= 50; i++) {
-            const x = (i * 5 * pixelsPerUnit) + viewportWidth / 2 + panX;
-            if (x >= 0 && x <= viewportWidth) {
+        const worldLeft = panX - viewportWidth / 2 / pixelsPerUnit;
+        const worldRight = panX + viewportWidth / 2 / pixelsPerUnit;
+
+        const startTick = Math.floor(worldLeft / 5) * 5;
+        const endTick = Math.ceil(worldRight / 5) * 5;
+
+        for (let i = startTick; i <= endTick; i++) {
+            const worldX = i * 5;
+            const screenX = (worldX - panX) * pixelsPerUnit + viewportWidth / 2 + 40;
+
+            if (screenX >= 40 && screenX <= viewportWidth + 40) {
                 ticks.push(
                     <div key={`h-major-${i}`}>
                         <div
                             className={`${styles.tick} ${styles.majorTick}`}
-                            style={{ left: `${x}px`, bottom: 0 }}
+                            style={{ left: `${screenX}px`, bottom: 0 }}
                         />
                         <div
                             className={styles.label}
-                            style={{ left: `${x + 2}px`, bottom: '14px' }}
+                            style={{ left: `${screenX + 2}px`, bottom: '14px' }}
                         >
-                            {i * 500}
+                            {worldX * 100}
                         </div>
                     </div>
                 );
-            }
 
-            // Minor ticks every decimeter (100mm)
-            for (let j = 1; j < 5; j++) {
-                const minorX = ((i * 5 + j) * pixelsPerUnit) + viewportWidth / 2 + panX;
-                if (minorX >= 0 && minorX <= viewportWidth) {
-                    ticks.push(
-                        <div
-                            key={`h-minor-${i}-${j}`}
-                            className={`${styles.tick} ${styles.minorTick}`}
-                            style={{ left: `${minorX}px`, bottom: 0 }}
-                        />
-                    );
+                // Minor ticks
+                for (let j = 1; j < 5; j++) {
+                    const minorWorldX = worldX + j;
+                    const minorScreenX = (minorWorldX - panX) * pixelsPerUnit + viewportWidth / 2 + 40;
+                    if (minorScreenX >= 40 && minorScreenX <= viewportWidth + 40) {
+                        ticks.push(
+                            <div
+                                key={`h-minor-${i}-${j}`}
+                                className={`${styles.tick} ${styles.minorTick}`}
+                                style={{ left: `${minorScreenX}px`, bottom: 0 }}
+                            />
+                        );
+                    }
                 }
             }
         }
@@ -118,18 +126,25 @@ export const RulerOverlay: React.FC<RulerOverlayProps> = ({
     const generateVerticalTicks = (): React.ReactElement[] => {
         const ticks: React.ReactElement[] = [];
         const pixelsPerUnit = zoom;
-        const viewportHeight = window.innerHeight;
+        const viewportHeight = window.innerHeight - 30;
 
-        // Major ticks every 5 decimeters (500mm)
-        for (let i = -50; i <= 50; i++) {
-            const y = (i * 5 * pixelsPerUnit) + viewportHeight / 2 - panY;
-            if (y >= 30 && y <= viewportHeight) {
+        const worldBottom = panY - viewportHeight / 2 / pixelsPerUnit;
+        const worldTop = panY + viewportHeight / 2 / pixelsPerUnit;
+
+        const startTick = Math.floor(worldBottom / 5) * 5;
+        const endTick = Math.ceil(worldTop / 5) * 5;
+
+        for (let i = startTick; i <= endTick; i++) {
+            const worldY = i * 5;
+            const screenY = -(worldY - panY) * pixelsPerUnit + viewportHeight / 2 + 30;
+
+            if (screenY >= 30 && screenY <= viewportHeight + 30) {
                 ticks.push(
                     <div key={`v-major-${i}`}>
                         <div
                             className={`${styles.tick} ${styles.majorTick}`}
                             style={{
-                                top: `${y}px`,
+                                top: `${screenY}px`,
                                 right: 0,
                                 width: '12px',
                                 height: '1px'
@@ -138,34 +153,35 @@ export const RulerOverlay: React.FC<RulerOverlayProps> = ({
                         <div
                             className={styles.label}
                             style={{
-                                top: `${y - 8}px`,
+                                top: `${screenY - 8}px`,
                                 right: '14px',
                                 transform: 'rotate(-90deg)',
                                 transformOrigin: 'right center'
                             }}
                         >
-                            {-i * 500}
+                            {worldY * 100}
                         </div>
                     </div>
                 );
-            }
 
-            // Minor ticks
-            for (let j = 1; j < 5; j++) {
-                const minorY = ((i * 5 + j) * pixelsPerUnit) + viewportHeight / 2 - panY;
-                if (minorY >= 30 && minorY <= viewportHeight) {
-                    ticks.push(
-                        <div
-                            key={`v-minor-${i}-${j}`}
-                            className={`${styles.tick} ${styles.minorTick}`}
-                            style={{
-                                top: `${minorY}px`,
-                                right: 0,
-                                width: '6px',
-                                height: '1px'
-                            }}
-                        />
-                    );
+                // Minor ticks
+                for (let j = 1; j < 5; j++) {
+                    const minorWorldY = worldY + j;
+                    const minorScreenY = -(minorWorldY - panY) * pixelsPerUnit + viewportHeight / 2 + 30;
+                    if (minorScreenY >= 30 && minorScreenY <= viewportHeight + 30) {
+                        ticks.push(
+                            <div
+                                key={`v-minor-${i}-${j}`}
+                                className={`${styles.tick} ${styles.minorTick}`}
+                                style={{
+                                    top: `${minorScreenY}px`,
+                                    right: 0,
+                                    width: '6px',
+                                    height: '1px'
+                                }}
+                            />
+                        );
+                    }
                 }
             }
         }
@@ -174,21 +190,18 @@ export const RulerOverlay: React.FC<RulerOverlayProps> = ({
 
     return (
         <div className={styles.container}>
-            {/* Horizontal Ruler (Top) */}
             <div className={styles.horizontalRuler}>
                 <div className={styles.rulerContent}>
                     {generateHorizontalTicks()}
                 </div>
             </div>
 
-            {/* Vertical Ruler (Left) */}
             <div className={styles.verticalRuler}>
                 <div className={styles.rulerContent}>
                     {generateVerticalTicks()}
                 </div>
             </div>
 
-            {/* Corner piece */}
             <div
                 style={{
                     position: 'absolute',
