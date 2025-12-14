@@ -1,18 +1,23 @@
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { makeStyles } from '@fluentui/react-components';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { useEffect, useRef, useState } from 'react';
 import { selectPart, updatePartPosition } from '../../store/slices/projectSlice';
 import * as THREE from 'three';
+import { RulerOverlay } from './RulerOverlay';
+import { ScaleIndicator } from './ScaleIndicator';
 
 const useStyles = makeStyles({
     container: {
         width: '100%',
         height: '100%',
         position: 'relative',
-        backgroundColor: '#1a1a1a',
-        // CSS Grid Pattern matching prototype exactly
+        backgroundColor: '#1a1a1a'
+    },
+    canvasWithGrid: {
+        width: '100%',
+        height: '100%',
         backgroundImage: `
       linear-gradient(#2D2D2D 1px, transparent 1px),
       linear-gradient(90deg, #2D2D2D 1px, transparent 1px),
@@ -22,17 +27,13 @@ const useStyles = makeStyles({
         backgroundSize: '20px 20px, 20px 20px, 100px 100px, 100px 100px',
         backgroundPosition: 'center center'
     },
-    canvasOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
+    canvasNoGrid: {
         width: '100%',
-        height: '100%',
-        pointerEvents: 'none'
+        height: '100%'
     }
 });
 
-// Material sheet boundary (the cutting area)
+// Material sheet boundary
 interface SheetBoundaryProps {
     width?: number;
     height?: number;
@@ -45,28 +46,59 @@ function SheetBoundary({ width = 24, height = 12 }: SheetBoundaryProps) {
         [width / 2, height / 2, 0],
         [-width / 2, height / 2, 0],
         [-width / 2, -height / 2, 0]
-    ] as [number, number, number][];
+    ];
 
     return (
         <group>
-            {/* Sheet rectangle outline */}
             <line>
-                <bufferGeometry>
+                <bufferGeometry attach="geometry">
                     <bufferAttribute
                         attach="attributes-position"
-                        count={5}
                         array={new Float32Array(points.flat())}
+                        count={5}
                         itemSize={3}
                     />
                 </bufferGeometry>
                 <lineBasicMaterial color="#444444" />
             </line>
 
-            {/* Semi-transparent sheet plane */}
             <mesh position={[0, 0, -0.01]}>
                 <planeGeometry args={[width, height]} />
                 <meshBasicMaterial color="#ffffff" opacity={0.02} transparent />
             </mesh>
+        </group>
+    );
+}
+
+// Coordinate axes
+function CoordinateAxes() {
+    return (
+        <group>
+            {/* X-axis (Red) */}
+            <line>
+                <bufferGeometry attach="geometry">
+                    <bufferAttribute
+                        attach="attributes-position"
+                        array={new Float32Array([-50, 0, 0, 50, 0, 0])}
+                        count={2}
+                        itemSize={3}
+                    />
+                </bufferGeometry>
+                <lineBasicMaterial color="#E05E5E" opacity={0.5} transparent />
+            </line>
+
+            {/* Y-axis (Cyan) */}
+            <line>
+                <bufferGeometry attach="geometry">
+                    <bufferAttribute
+                        attach="attributes-position"
+                        array={new Float32Array([0, -50, 0, 0, 50, 0])}
+                        count={2}
+                        itemSize={3}
+                    />
+                </bufferGeometry>
+                <lineBasicMaterial color="#56B6C2" opacity={0.5} transparent />
+            </line>
         </group>
     );
 }
@@ -91,14 +123,12 @@ function InteractivePart({ partId, objects, position, rotation, selected }: Inte
     useEffect(() => {
         if (!groupRef.current) return;
 
-        // Clear and add objects
         while (groupRef.current.children.length > 0) {
             groupRef.current.remove(groupRef.current.children[0]);
         }
 
         objects.forEach((obj) => {
             const clonedObj = obj.clone();
-            // Change color if selected
             if (clonedObj instanceof THREE.Line) {
                 const material = clonedObj.material as THREE.LineBasicMaterial;
                 material.color.setHex(selected ? 0x007acc : 0xe0e0e0);
@@ -128,10 +158,7 @@ function InteractivePart({ partId, objects, position, rotation, selected }: Inte
         raycaster.setFromCamera(mouse, camera);
         raycaster.ray.intersectPlane(dragPlane.current, intersection.current);
 
-        const newX = intersection.current.x;
-        const newY = intersection.current.y;
-
-        dispatch(updatePartPosition({ id: partId, x: newX, y: newY }));
+        dispatch(updatePartPosition({ id: partId, x: intersection.current.x, y: intersection.current.y }));
     };
 
     const handlePointerUp = () => {
@@ -158,13 +185,11 @@ function InteractivePart({ partId, objects, position, rotation, selected }: Inte
             rotation={[0, 0, rotation]}
             onPointerDown={handlePointerDown}
         >
-            {/* Invisible hit box for easier clicking */}
             <mesh visible={false}>
                 <boxGeometry args={[2, 2, 0.1]} />
                 <meshBasicMaterial />
             </mesh>
 
-            {/* Selection indicator */}
             {selected && (
                 <mesh position={[0, 0, -0.02]}>
                     <boxGeometry args={[2.2, 2.2, 0.01]} />
@@ -195,47 +220,48 @@ function ImportedParts() {
     );
 }
 
-// Import useThree hook
-import { useThree } from '@react-three/fiber';
-
-// Main 3D scene component
+// Main scene component
 export const ThreeScene: React.FC = () => {
     const styles = useStyles();
+    const showGrid = useAppSelector((state) => state.settings.showGrid);
 
     return (
         <div className={styles.container}>
-            <Canvas
-                orthographic
-                camera={{
-                    position: [0, 0, 50],
-                    zoom: 20,
-                    near: 0.1,
-                    far: 1000
-                }}
-            >
-                {/* Lighting */}
-                <ambientLight intensity={0.8} />
-                <directionalLight position={[0, 0, 10]} intensity={0.5} />
-
-                {/* Sheet boundary and parts */}
-                <SheetBoundary width={24} height={12} />
-                <ImportedParts />
-
-                {/* Camera controls - 2D view */}
-                <OrbitControls
-                    enableDamping
-                    dampingFactor={0.05}
-                    enableRotate={false}
-                    enablePan={true}
-                    zoomSpeed={0.5}
-                    panSpeed={0.5}
-                    mouseButtons={{
-                        LEFT: THREE.MOUSE.PAN,
-                        MIDDLE: THREE.MOUSE.DOLLY,
-                        RIGHT: THREE.MOUSE.PAN
+            <div className={showGrid ? styles.canvasWithGrid : styles.canvasNoGrid}>
+                <Canvas
+                    orthographic
+                    camera={{
+                        position: [0, 0, 50],
+                        zoom: 20,
+                        near: 0.1,
+                        far: 1000
                     }}
-                />
-            </Canvas>
+                >
+                    <ambientLight intensity={0.8} />
+                    <directionalLight position={[0, 0, 10]} intensity={0.5} />
+
+                    <CoordinateAxes />
+                    <SheetBoundary width={24} height={12} />
+                    <ImportedParts />
+
+                    <OrbitControls
+                        enableDamping
+                        dampingFactor={0.05}
+                        enableRotate={false}
+                        enablePan={true}
+                        zoomSpeed={0.5}
+                        panSpeed={0.5}
+                        mouseButtons={{
+                            LEFT: THREE.MOUSE.PAN,
+                            MIDDLE: THREE.MOUSE.DOLLY,
+                            RIGHT: THREE.MOUSE.PAN
+                        }}
+                    />
+                </Canvas>
+            </div>
+
+            <RulerOverlay />
+            <ScaleIndicator />
         </div>
     );
 };

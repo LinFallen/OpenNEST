@@ -5,11 +5,13 @@ import {
     Square24Regular,
     Circle24Regular,
     GridDots24Regular,
-    ArrowUpload24Regular
+    ArrowUpload24Regular,
+    Grid24Regular
 } from '@fluentui/react-icons';
 import { useRef } from 'react';
-import { useAppDispatch } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { addPart } from '../../store/slices/projectSlice';
+import { toggleGrid } from '../../store/slices/settingsSlice';
 import { parseDXF, entitiesToThreeObjects } from '../../utils/dxfParser';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -77,6 +79,7 @@ export const TopBar: React.FC = () => {
     const styles = useStyles();
     const dispatch = useAppDispatch();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const showGrid = useAppSelector((state) => state.settings.showGrid);
 
     const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -112,6 +115,10 @@ export const TopBar: React.FC = () => {
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
+    };
+
+    const handleToggleGrid = () => {
+        dispatch(toggleGrid());
     };
 
     return (
@@ -163,6 +170,17 @@ export const TopBar: React.FC = () => {
                 <Tooltip content="Circle (Coming Soon)" relationship="label">
                     <Button className={styles.toolBtn} disabled>
                         <Circle24Regular />
+                    </Button>
+                </Tooltip>
+
+                <div className={styles.divider} />
+
+                <Tooltip content="Toggle Grid (G)" relationship="label">
+                    <Button
+                        className={`${styles.toolBtn} ${showGrid ? styles.toolBtnActive : ''}`}
+                        onClick={handleToggleGrid}
+                    >
+                        <Grid24Regular />
                     </Button>
                 </Tooltip>
 
