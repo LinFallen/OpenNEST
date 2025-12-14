@@ -1,35 +1,42 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import { FluentProvider } from '@fluentui/react-components';
+import { darkEngineeringTheme } from './theme/darkEngineering';
+import { LayoutShell } from './components/Layout/LayoutShell';
+import { TopBar } from './components/TopBar/TopBar';
+import { StatusBar } from './components/StatusBar/StatusBar';
+import { ProjectExplorer } from './components/ProjectExplorer/ProjectExplorer';
+import { PropertiesPanel } from './components/PropertiesPanel/PropertiesPanel';
+import { CanvasViewport } from './components/Canvas/CanvasViewport';
 
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const handleFileSelect = (id: string) => {
+    console.log('Selected file:', id);
+    // TODO: Implement file selection logic
+  };
+
+  const handleGenerateGCode = () => {
+    console.log('Generate G-Code');
+    // TODO: Implement G-Code generation
+  };
+
+  const handleSimulate = () => {
+    console.log('Simulate trace');
+    // TODO: Implement simulation
+  };
 
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
-  )
+    <FluentProvider theme={darkEngineeringTheme}>
+      <LayoutShell
+        header={<TopBar />}
+        sidebarLeft={<ProjectExplorer onFileSelect={handleFileSelect} />}
+        viewport={<CanvasViewport />}
+        sidebarRight={
+          <PropertiesPanel onGenerateGCode={handleGenerateGCode} onSimulate={handleSimulate} />
+        }
+        footer={<StatusBar />}
+      />
+    </FluentProvider>
+  );
 }
 
-export default App
+export default App;
+
