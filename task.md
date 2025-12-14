@@ -11,21 +11,64 @@
     - [x] Initialize Infinite Canvas (Grid, Axes, Camera Controls) <!-- id: 8 -->
     - [x] Implement DXF Import & Rendering <!-- id: 9 -->
     - [x] Implement Selection & Transform controls (Drag, Rotate) <!-- id: 10 -->
+    - [x] Add Rulers with world coordinates (Top and Left) <!-- id: 29 -->
+    - [x] Add Scale Indicator (Bottom-Left corner) <!-- id: 30 -->
+    - [x] Implement Grid Toggle functionality <!-- id: 31 -->
 - [ ] **Phase 4: Logic Core** <!-- id: 11 -->
     - [x] Define Redux State Slice for Parts and Sheets <!-- id: 12 -->
     - [ ] Implement Basic Nesting Algorithm (Rectangular packer MVP) <!-- id: 13 -->
     - [ ] Implement G-Code Generator Logic <!-- id: 14 -->
-- [ ] **Phase 5: UI Enhancements** <!-- id: 15 -->
+- [ ] **Phase 5: StatusBar Enhancements** <!-- id: 32 -->
+    - [ ] Display real-time cursor position (X, Y coordinates in mm) <!-- id: 33 -->
+    - [ ] Show current application status/mode (Ready, Nesting, etc.) <!-- id: 34 -->
+    - [ ] Add Unit switcher (mm/inch) <!-- id: 35 -->
+    - [ ] Display encoding info (UTF-8) <!-- id: 36 -->
+    - [ ] Apply blue accent background matching prototype (#007ACC) <!-- id: 37 -->
+- [ ] **Phase 6: Project Explorer Enhancements** <!-- id: 38 -->
+    - [ ] Display part quantity (QTY) in file list <!-- id: 39 -->
+    - [ ] Show material type in file list (e.g., "Steel 2mm") <!-- id: 40 -->
+    - [ ] Implement Layers panel with color indicators <!-- id: 41 -->
+    - [ ] Support layer visibility toggle <!-- id: 42 -->
+    - [ ] Add layer color customization <!-- id: 43 -->
+- [ ] **Phase 7: PropertiesPanel Enhancements** <!-- id: 44 -->
+    - [ ] Bind Position X/Y inputs to Redux state <!-- id: 45 -->
+    - [ ] Bind Rotation input to Redux state <!-- id: 46 -->
+    - [ ] Add Machining Parameters section <!-- id: 47 -->
+        - [ ] Tool Diameter input <!-- id: 48 -->
+        - [ ] Lead In distance input <!-- id: 49 -->
+        - [ ] Kerf compensation input <!-- id: 50 -->
+    - [ ] Add "Simulate Trace" button <!-- id: 51 -->
+    - [ ] Add "Generate G-Code" primary action button <!-- id: 52 -->
+- [ ] **Phase 8: Sheet Management** <!-- id: 53 -->
+    - [ ] Support multiple sheets on canvas simultaneously <!-- id: 54 -->
+    - [ ] Sheet dimension display (e.g., "2400 x 1200 mm") <!-- id: 55 -->
+    - [ ] Sheet selection and manipulation <!-- id: 56 -->
+    - [ ] Constraint: Parts can only be placed within sheet boundaries <!-- id: 57 -->
+    - [ ] Add New Sheet functionality <!-- id: 58 -->
+- [ ] **Phase 9: Drawing Tools** <!-- id: 15 -->
     - [ ] Implement Rectangle Drawing Tool <!-- id: 16 -->
     - [ ] Implement Circle Drawing Tool <!-- id: 17 -->
     - [ ] Implement Pan Tool (dedicated tool mode) <!-- id: 18 -->
-    - [ ] Connect StatusBar to show real-time cursor coordinates <!-- id: 19 -->
+- [ ] **Phase 10: Context Menu & Operations** <!-- id: 59 -->
     - [ ] Add context menu for right-click operations <!-- id: 20 -->
     - [ ] Implement copy/paste/duplicate functionality <!-- id: 21 -->
-- [ ] **Phase 6: Refinement & Polish** <!-- id: 22 -->
-    - [ ] Bind all PropertiesPanel inputs to State <!-- id: 23 -->
+    - [ ] Add delete part functionality <!-- id: 60 -->
+    - [ ] Add rotate shortcuts (90°, 180°, etc.) <!-- id: 61 -->
+- [ ] **Phase 11: Notifications & Feedback** <!-- id: 62 -->
+    - [ ] Implement Toast notification system <!-- id: 63 -->
+    - [ ] Show nesting completion toast with utilization % <!-- id: 64 -->
+    - [ ] Show success/error indicators (colored badges) <!-- id: 65 -->
+    - [ ] Add slide-up animation for toasts <!-- id: 66 -->
+- [ ] **Phase 12: G-Code Simulation** <!-- id: 67 -->
+    - [ ] Implement toolpath preview overlay <!-- id: 68 -->
+    - [ ] Show cutting path with amber color (#D7BA7D) <!-- id: 69 -->
+    - [ ] Add animation for toolpath simulation <!-- id: 70 -->
+    - [ ] Display simulation controls (play, pause, speed) <!-- id: 71 -->
+- [ ] **Phase 13: Refinement & Polish** <!-- id: 22 -->
     - [ ] Add Application Menu & File operations (New, Open, Save) <!-- id: 24 -->
     - [ ] Implement undo/redo functionality <!-- id: 25 -->
     - [ ] Add keyboard shortcuts <!-- id: 26 -->
     - [ ] Add export options (DXF, PDF, SVG) <!-- id: 27 -->
+    - [ ] Add connection status indicator (top-right) <!-- id: 72 -->
+    - [ ] Show version number in header <!-- id: 73 -->
     - [ ] End-to-End Verification & Testing <!-- id: 28 -->
