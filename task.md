@@ -1,74 +1,101 @@
-# OpenNEST Implementation Tasks
+# OpenNEST Implementation Tasks - MVP Priority
 
-- [x] **Phase 1: Project Initialization** <!-- id: 0 -->
-    - [x] Initialize project with Electron + React + TypeScript (Vite based) <!-- id: 1 -->
-    - [x] Configure ESLint, Prettier, and project structure <!-- id: 2 -->
-    - [x] Install core dependencies (Three.js, Fluent UI, Redux Toolkit) <!-- id: 3 -->
-- [x] **Phase 2: UI Foundation** <!-- id: 4 -->
-    - [x] Implement Global Theme (Dark Engineering) & Layout Shell <!-- id: 5 -->
-    - [x] Create core UI components (Sidebar, TopBar, StatusBar, PropertiesPanel) <!-- id: 6 -->
-- [x] **Phase 3: Graphics Core (Three.js)** <!-- id: 7 -->
-    - [x] Initialize Infinite Canvas (Grid, Axes, Camera Controls) <!-- id: 8 -->
-    - [x] Implement DXF Import & Rendering <!-- id: 9 -->
-    - [x] Implement Selection & Transform controls (Drag, Rotate) <!-- id: 10 -->
-    - [x] Add Rulers with world coordinates (Top and Left) <!-- id: 29 -->
-    - [x] Add Scale Indicator (Bottom-Left corner) <!-- id: 30 -->
-    - [x] Implement Grid Toggle functionality <!-- id: 31 -->
-- [ ] **Phase 4: Logic Core** <!-- id: 11 -->
-    - [x] Define Redux State Slice for Parts and Sheets <!-- id: 12 -->
-    - [ ] Implement Basic Nesting Algorithm (Rectangular packer MVP) <!-- id: 13 -->
-    - [ ] Implement G-Code Generator Logic <!-- id: 14 -->
-- [ ] **Phase 5: StatusBar Enhancements** <!-- id: 32 -->
-    - [ ] Display real-time cursor position (X, Y coordinates in mm) <!-- id: 33 -->
-    - [ ] Show current application status/mode (Ready, Nesting, etc.) <!-- id: 34 -->
-    - [ ] Add Unit switcher (mm/inch) <!-- id: 35 -->
-    - [ ] Display encoding info (UTF-8) <!-- id: 36 -->
-    - [ ] Apply blue accent background matching prototype (#007ACC) <!-- id: 37 -->
-- [ ] **Phase 6: Project Explorer Enhancements** <!-- id: 38 -->
-    - [ ] Display part quantity (QTY) in file list <!-- id: 39 -->
-    - [ ] Show material type in file list (e.g., "Steel 2mm") <!-- id: 40 -->
-    - [ ] Implement Layers panel with color indicators <!-- id: 41 -->
-    - [ ] Support layer visibility toggle <!-- id: 42 -->
-    - [ ] Add layer color customization <!-- id: 43 -->
-- [ ] **Phase 7: PropertiesPanel Enhancements** <!-- id: 44 -->
-    - [ ] Bind Position X/Y inputs to Redux state <!-- id: 45 -->
-    - [ ] Bind Rotation input to Redux state <!-- id: 46 -->
-    - [ ] Add Machining Parameters section <!-- id: 47 -->
-        - [ ] Tool Diameter input <!-- id: 48 -->
-        - [ ] Lead In distance input <!-- id: 49 -->
-        - [ ] Kerf compensation input <!-- id: 50 -->
-    - [ ] Add "Simulate Trace" button <!-- id: 51 -->
-    - [ ] Add "Generate G-Code" primary action button <!-- id: 52 -->
-- [ ] **Phase 8: Sheet Management** <!-- id: 53 -->
-    - [ ] Support multiple sheets on canvas simultaneously <!-- id: 54 -->
-    - [ ] Sheet dimension display (e.g., "2400 x 1200 mm") <!-- id: 55 -->
-    - [ ] Sheet selection and manipulation <!-- id: 56 -->
-    - [ ] Constraint: Parts can only be placed within sheet boundaries <!-- id: 57 -->
-    - [ ] Add New Sheet functionality <!-- id: 58 -->
-- [ ] **Phase 9: Drawing Tools** <!-- id: 15 -->
-    - [ ] Implement Rectangle Drawing Tool <!-- id: 16 -->
-    - [ ] Implement Circle Drawing Tool <!-- id: 17 -->
-    - [ ] Implement Pan Tool (dedicated tool mode) <!-- id: 18 -->
-- [ ] **Phase 10: Context Menu & Operations** <!-- id: 59 -->
-    - [ ] Add context menu for right-click operations <!-- id: 20 -->
-    - [ ] Implement copy/paste/duplicate functionality <!-- id: 21 -->
-    - [ ] Add delete part functionality <!-- id: 60 -->
-    - [ ] Add rotate shortcuts (90°, 180°, etc.) <!-- id: 61 -->
-- [ ] **Phase 11: Notifications & Feedback** <!-- id: 62 -->
-    - [ ] Implement Toast notification system <!-- id: 63 -->
-    - [ ] Show nesting completion toast with utilization % <!-- id: 64 -->
-    - [ ] Show success/error indicators (colored badges) <!-- id: 65 -->
-    - [ ] Add slide-up animation for toasts <!-- id: 66 -->
-- [ ] **Phase 12: G-Code Simulation** <!-- id: 67 -->
-    - [ ] Implement toolpath preview overlay <!-- id: 68 -->
-    - [ ] Show cutting path with amber color (#D7BA7D) <!-- id: 69 -->
-    - [ ] Add animation for toolpath simulation <!-- id: 70 -->
-    - [ ] Display simulation controls (play, pause, speed) <!-- id: 71 -->
-- [ ] **Phase 13: Refinement & Polish** <!-- id: 22 -->
-    - [ ] Add Application Menu & File operations (New, Open, Save) <!-- id: 24 -->
-    - [ ] Implement undo/redo functionality <!-- id: 25 -->
-    - [ ] Add keyboard shortcuts <!-- id: 26 -->
-    - [ ] Add export options (DXF, PDF, SVG) <!-- id: 27 -->
-    - [ ] Add connection status indicator (top-right) <!-- id: 72 -->
-    - [ ] Show version number in header <!-- id: 73 -->
-    - [ ] End-to-End Verification & Testing <!-- id: 28 -->
+## ✅ Completed Phases
+
+- [x] **Phase 1: Project Initialization**
+    - [x] Initialize project with Electron + React + TypeScript (Vite based)
+    - [x] Configure ESLint, Prettier, and project structure
+    - [x] Install core dependencies (Three.js, Fluent UI, Redux Toolkit)
+- [x] **Phase 2: UI Foundation**
+    - [x] Implement Global Theme (Dark Engineering) & Layout Shell
+    - [x] Create core UI components (Sidebar, TopBar, StatusBar, PropertiesPanel)
+- [x] **Phase 3: Graphics Core (Three.js)**
+    - [x] Initialize Infinite Canvas (Grid, Axes, Camera Controls)
+    - [x] Implement DXF Import & Rendering
+    - [x] Implement Selection & Transform controls (Drag, Rotate)
+    - [x] Add Rulers with world coordinates (Top and Left)
+    - [x] Add Scale Indicator (Bottom-Left corner)
+    - [x] Implement Grid Toggle functionality
+
+---
+
+## 🎯 MVP Core Features (High Priority)
+
+- [ ] **Phase 4: StatusBar - Core UX** ⭐ **← START HERE**
+    - [ ] Display real-time cursor position (X, Y in mm)
+    - [ ] Show current application status (Ready, Nesting, Busy)
+    - [ ] Add Unit switcher (mm/inch)
+    - [ ] Apply blue accent background (#007ACC)
+    
+- [ ] **Phase 5: PropertiesPanel - Bidirectional Binding**
+    - [ ] Bind Position X/Y inputs to Redux state
+    - [ ] Bind Rotation input to Redux state
+    - [ ] Add Machining Parameters section
+        - [ ] Tool Diameter input
+        - [ ] Lead In distance input
+        - [ ] Kerf compensation input
+
+- [ ] **Phase 6: Sheet Management Basics**
+    - [ ] Sheet dimension display ("2400 x 1200 mm")
+    - [ ] Constraint: Parts stay within sheet boundaries
+    - [ ] Support adding/removing sheets
+    
+- [ ] **Phase 7: Logic Core - Nesting & G-Code**
+    - [x] Define Redux State Slice for Parts and Sheets
+    - [ ] Implement Basic Nesting Algorithm (Rectangular packer MVP)
+    - [ ] Implement G-Code Generator Logic
+    - [ ] Add "Generate G-Code" button functionality
+
+---
+
+## 💎 Essential UX Enhancements (Medium Priority)
+
+- [ ] **Phase 8: Project Explorer - Essential Info**
+    - [ ] Display part quantity (QTY) in file list
+    - [ ] Show material type (e.g., "Steel 2mm")
+    - [ ] Basic Layers panel with color indicators
+
+- [ ] **Phase 9: Notifications System**
+    - [ ] Implement Toast notification component
+    - [ ] Show nesting completion with utilization %
+    - [ ] Success/error badges
+    - [ ] Slide-up animation
+
+- [ ] **Phase 10: Context Menu & Basic Operations**
+    - [ ] Add context menu for right-click
+    - [ ] Implement copy/paste/duplicate
+    - [ ] Add delete part functionality
+    - [ ] Basic keyboard shortcuts (Delete, Ctrl+C/V)
+
+---
+
+## 🎨 Advanced Features (Lower Priority)
+
+- [ ] **Phase 11: Drawing Tools**
+    - [ ] Rectangle Drawing Tool
+    - [ ] Circle Drawing Tool
+    - [ ] Dedicated Pan Tool mode
+
+- [ ] **Phase 12: G-Code Simulation**
+    - [ ] Toolpath preview overlay
+    - [ ] Amber cutting path (#D7BA7D)
+    - [ ] Animation controls
+
+- [ ] **Phase 13: Application Polish**
+    - [ ] Application Menu (File, Edit, View, Help)
+    - [ ] File operations (New, Open, Save)
+    - [ ] Undo/redo functionality
+    - [ ] Export options (DXF, PDF, SVG)
+    - [ ] Full keyboard shortcuts
+    - [ ] End-to-End Testing
+
+---
+
+## 📝 MVP Definition
+- ✅ Import DXF
+- ✅ View and move parts
+- ⏳ Auto-nest parts on sheet
+- ⏳ Generate G-code
+- ⏳ Basic user feedback (cursor, status)
+
+**Next:** Phase 4 StatusBar - Immediate UX improvement

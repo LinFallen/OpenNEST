@@ -4,6 +4,7 @@ import { makeStyles } from '@fluentui/react-components';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { useEffect, useRef, useState } from 'react';
 import { selectPart, updatePartPosition } from '../../store/slices/projectSlice';
+import { setCursorPosition } from '../../store/slices/settingsSlice';
 import * as THREE from 'three';
 import { RulerOverlay } from './RulerOverlay';
 import { ScaleIndicator } from './ScaleIndicator';
@@ -226,6 +227,7 @@ export const ThreeScene: React.FC = () => {
     const styles = useStyles();
     const showGrid = useAppSelector((state) => state.settings.showGrid);
     const [cameraPosition, setCameraPosition] = useState({ x: 0, y: 0 });
+    const dispatch = useAppDispatch();
 
     // Component inside Canvas to track camera
     function CameraTracker() {
@@ -242,8 +244,26 @@ export const ThreeScene: React.FC = () => {
         return null;
     }
 
+    // Track mouse position for cursor coordinates
+    const handleCanvasMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const canvasWidth = rect.width - 40; // Subtract ruler width
+        const canvasHeight = rect.height - 30; // Subtract ruler height
+
+        // Calculate mouse position relative to canvas center
+        const mouseX = e.clientX - rect.left - 40; // Offset for left ruler
+        const mouseY = e.clientY - rect.top - 30; // Offset for top ruler
+
+        // Convert to world coordinates (zoom = 20 pixels per decimeter)
+        const zoom = 20;
+        const worldX = cameraPosition.x + (mouseX - canvasWidth / 2) / zoom;
+        const worldY = cameraPosition.y - (mouseY - canvasHeight / 2) / zoom;
+
+        dispatch(setCursorPosition({ x: worldX, y: worldY }));
+    };
+
     return (
-        <div className={styles.container}>
+        <div className={styles.container} onMouseMove={handleCanvasMouseMove}>
             <div className={showGrid ? styles.canvasWithGrid : styles.canvasNoGrid}>
                 <Canvas
                     orthographic
