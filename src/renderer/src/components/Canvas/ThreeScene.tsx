@@ -62,9 +62,10 @@ function SheetBoundary({ width = 24, height = 12 }: SheetBoundaryProps) {
                 <lineBasicMaterial color="#444444" />
             </line>
 
-            <mesh position={[0, 0, -0.01]}>
+            {/* Non-interactive plane - just for visual reference */}
+            <mesh position={[0, 0, -0.01]} visible={true}>
                 <planeGeometry args={[width, height]} />
-                <meshBasicMaterial color="#ffffff" opacity={0.02} transparent />
+                <meshBasicMaterial color="#ffffff" opacity={0.02} transparent depthWrite={false} />
             </mesh>
         </group>
     );
@@ -251,9 +252,9 @@ export const ThreeScene: React.FC = () => {
                         zoomSpeed={0.5}
                         panSpeed={0.5}
                         mouseButtons={{
-                            LEFT: THREE.MOUSE.PAN,
+                            LEFT: undefined, // Left-click for selection only
                             MIDDLE: THREE.MOUSE.DOLLY,
-                            RIGHT: THREE.MOUSE.PAN
+                            RIGHT: THREE.MOUSE.PAN // Right-click to pan canvas
                         }}
                     />
                 </Canvas>
