@@ -1,0 +1,21 @@
+# OpenNEST Implementation Tasks
+
+- [ ] **Phase 1: Project Initialization** <!-- id: 0 -->
+    - [ ] Initialize project with Electron + React + TypeScript (Vite based) <!-- id: 1 -->
+    - [ ] Configure ESLint, Prettier, and project structure <!-- id: 2 -->
+    - [ ] Install core dependencies (Three.js, Fluent UI, Redux Toolkit) <!-- id: 3 -->
+- [ ] **Phase 2: UI Foundation** <!-- id: 4 -->
+    - [ ] Implement Global Theme (Dark Engineering) & Layout Shell <!-- id: 5 -->
+    - [ ] Create core UI components (Sidebar, TopBar, StatusBar, PropertiesPanel) <!-- id: 6 -->
+- [ ] **Phase 3: Graphics Core (Three.js)** <!-- id: 7 -->
+    - [ ] Initialize Infinite Canvas (Grid, Axes, Camera Controls) <!-- id: 8 -->
+    - [ ] Implement DXF Import & Rendering <!-- id: 9 -->
+    - [ ] Implement Selection & Transform controls (Drag, Rotate) <!-- id: 10 -->
+- [ ] **Phase 4: Logic Core** <!-- id: 11 -->
+    - [ ] Define Redux State Slice for Parts and Sheets <!-- id: 12 -->
+    - [ ] Implement Basic Nesting Algorithm (Rectangular packer MVP) <!-- id: 13 -->
+    - [ ] Implement G-Code Generator Logic <!-- id: 14 -->
+- [ ] **Phase 5: Refinement** <!-- id: 15 -->
+    - [ ] Bind UI inputs to State (Properties Panel) <!-- id: 16 -->
+    - [ ] Add Application Menu & Native Integrations <!-- id: 17 -->
+    - [ ] End-to-End Verification <!-- id: 18 -->
