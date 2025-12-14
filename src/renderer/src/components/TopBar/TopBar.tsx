@@ -88,24 +88,33 @@ export const TopBar: React.FC = () => {
         try {
             const content = await file.text();
             const parsed = parseDXF(content);
-            const objects = entitiesToThreeObjects(parsed.entities);
 
-            const newPart = {
-                id: uuidv4(),
-                name: file.name,
-                entities: parsed.entities,
-                objects,
-                bounds: parsed.bounds,
-                position: { x: 0, y: 0 },
-                rotation: 0,
-                layer: parsed.layers[0] || '0',
-                material: 'Steel 2mm',
-                quantity: 1,
-                selected: false
-            };
+            // Import each closed shape as a separate part
+            parsed.shapes.forEach((shape, index) => {
+                const objects = entitiesToThreeObjects(shape.entities);
 
-            dispatch(addPart(newPart));
-            console.log('Imported DXF:', file.name, parsed);
+                const newPart = {
+                    id: uuidv4(),
+                    name: shape.name || `${file.name.replace('.dxf', '')}_Part${index + 1}`,
+                    entities: shape.entities,
+                    objects,
+                    bounds: shape.bounds,
+                    position: { x: 0, y: 0 },
+                    rotation: 0,
+                    layer: shape.layer || '0',
+                    material: 'Steel 2mm',
+                    quantity: 1,
+                    selected: false
+                };
+
+                dispatch(addPart(newPart));
+            });
+
+            console.log(`Imported ${parsed.shapes.length} parts from ${file.name}`);
+
+            if (parsed.shapes.length === 0) {
+                alert('No closed shapes found in DXF file. Please ensure your DXF contains closed geometries.');
+            }
         } catch (error) {
             console.error('Failed to import DXF:', error);
             alert('Failed to import DXF file. Please check the file format.');

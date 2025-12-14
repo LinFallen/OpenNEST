@@ -10,17 +10,197 @@ export interface DXFEntity {
   radius?: number;
 }
 
-export interface ParsedDXF {
+export interface ClosedShape {
   entities: DXFEntity[];
   bounds: {
     min: THREE.Vector3;
     max: THREE.Vector3;
   };
+  name: string;
+  layer: string;
+}
+
+export interface ParsedDXF {
+  shapes: ClosedShape[]; // Changed from entities to shapes
   layers: string[];
 }
 
 /**
- * Parse DXF file content and convert to Three.js-ready format
+ * Check if two points are close enough to be considered connected
+ */
+function pointsEqual(p1: THREE.Vector3, p2: THREE.Vector3, tolerance = 0.001): boolean {
+  return p1.distanceTo(p2) < tolerance;
+}
+
+/**
+ * Get start and end points of an entity
+ */
+function getEntityEndpoints(entity: DXFEntity): { start: THREE.Vector3; end: THREE.Vector3 } | null {
+  if (entity.type === 'LINE' && entity.vertices && entity.vertices.length >= 2) {
+    return {
+      start: entity.vertices[0],
+      end: entity.vertices[1]
+    };
+  }
+  
+  if ((entity.type === 'POLYLINE' || entity.type === 'ARC') && entity.vertices && entity.vertices.length >= 2) {
+    return {
+      start: entity.vertices[0],
+      end: entity.vertices[entity.vertices.length - 1]
+    };
+  }
+  
+  return null;
+}
+
+/**
+ * Check if an entity forms a closed loop on its own
+ */
+function isSelfClosed(entity: DXFEntity): boolean {
+  // Circles are always closed
+  if (entity.type === 'CIRCLE') {
+    return true;
+  }
+  
+  // Check DXF shape flag (70=1 in DXF means closed)
+  // dxf-parser sets this as entity.shape = true
+  if ((entity as any).shape === true) {
+    return true;
+  }
+  
+  // Fallback: Check if polyline/arc start/end points connect
+  if ((entity.type === 'POLYLINE' || entity.type === 'ARC') && entity.vertices && entity.vertices.length >= 3) {
+    const start = entity.vertices[0];
+    const end = entity.vertices[entity.vertices.length - 1];
+    return pointsEqual(start, end);
+  }
+  
+  return false;
+}
+
+/**
+ * Find connected entities that form closed shapes
+ */
+function findClosedShapes(entities: DXFEntity[]): ClosedShape[] {
+  const shapes: ClosedShape[] = [];
+  const used = new Set<number>();
+  
+  entities.forEach((entity, index) => {
+    if (used.has(index)) return;
+    
+    // Handle self-closed entities (circles, closed polylines)
+    if (isSelfClosed(entity)) {
+      const bounds = calculateBounds([entity]);
+      shapes.push({
+        entities: [entity],
+        bounds,
+        name: `Part ${shapes.length + 1}`,
+        layer: entity.layer
+      });
+      used.add(index);
+      return;
+    }
+    
+    // Try to find connected entities for this one
+    const shapeEntities: DXFEntity[] = [entity];
+    const shapeIndices: number[] = [index];
+    used.add(index);
+    
+    let currentEnd = getEntityEndpoints(entity);
+    if (!currentEnd) return;
+    
+    let searchPoint = currentEnd.end;
+    const startPoint = currentEnd.start;
+    const maxIterations = entities.length;
+    let iterations = 0;
+    
+    // Keep searching for connected entities
+    while (iterations < maxIterations) {
+      iterations++;
+      
+      let found = false;
+      
+      for (let i = 0; i < entities.length; i++) {
+        if (used.has(i)) continue;
+        
+        const endpoints = getEntityEndpoints(entities[i]);
+        if (!endpoints) continue;
+        
+        // Check if this entity connects to our current search point
+        if (pointsEqual(searchPoint, endpoints.start)) {
+          shapeEntities.push(entities[i]);
+          shapeIndices.push(i);
+          used.add(i);
+          searchPoint = endpoints.end;
+          found = true;
+          break;
+        } else if (pointsEqual(searchPoint, endpoints.end)) {
+          // Reverse the entity to maintain direction
+          const reversed = { ...entities[i] };
+          if (reversed.vertices) {
+            reversed.vertices = [...reversed.vertices].reverse();
+          }
+          shapeEntities.push(reversed);
+          shapeIndices.push(i);
+          used.add(i);
+          searchPoint = endpoints.start;
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) break;
+      
+      // Check if we've closed the loop
+      if (pointsEqual(searchPoint, startPoint)) {
+        // We found a closed shape!
+        const bounds = calculateBounds(shapeEntities);
+        shapes.push({
+          entities: shapeEntities,
+          bounds,
+          name: `Part ${shapes.length + 1}`,
+          layer: shapeEntities[0].layer
+        });
+        break;
+      }
+    }
+  });
+  
+  return shapes;
+}
+
+/**
+ * Calculate bounding box for a group of entities
+ */
+function calculateBounds(entities: DXFEntity[]): { min: THREE.Vector3; max: THREE.Vector3 } {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  
+  entities.forEach(entity => {
+    if (entity.vertices) {
+      entity.vertices.forEach(v => {
+        minX = Math.min(minX, v.x);
+        minY = Math.min(minY, v.y);
+        maxX = Math.max(maxX, v.x);
+        maxY = Math.max(maxY, v.y);
+      });
+    }
+    
+    if (entity.center && entity.radius) {
+      minX = Math.min(minX, entity.center.x - entity.radius);
+      minY = Math.min(minY, entity.center.y - entity.radius);
+      maxX = Math.max(maxX, entity.center.x + entity.radius);
+      maxY = Math.max(maxY, entity.center.y + entity.radius);
+    }
+  });
+  
+  return {
+    min: new THREE.Vector3(minX, minY, 0),
+    max: new THREE.Vector3(maxX, maxY, 0)
+  };
+}
+
+/**
+ * Parse DXF file content and identify closed shapes
  */
 export function parseDXF(fileContent: string): ParsedDXF {
   const parser = new DxfParser();
@@ -35,10 +215,6 @@ export function parseDXF(fileContent: string): ParsedDXF {
 
   const entities: DXFEntity[] = [];
   const layers = new Set<string>();
-  let minX = Infinity,
-    minY = Infinity,
-    maxX = -Infinity,
-    maxY = -Infinity;
 
   // Process entities
   if (dxf.entities) {
@@ -65,12 +241,6 @@ export function parseDXF(fileContent: string): ParsedDXF {
             color: entity.color,
             vertices: [start, end]
           });
-
-          // Update bounds
-          minX = Math.min(minX, start.x, end.x);
-          minY = Math.min(minY, start.y, end.y);
-          maxX = Math.max(maxX, start.x, end.x);
-          maxY = Math.max(maxY, start.y, end.y);
           break;
         }
 
@@ -85,14 +255,6 @@ export function parseDXF(fileContent: string): ParsedDXF {
             layer,
             color: entity.color,
             vertices
-          });
-
-          // Update bounds
-          vertices.forEach((v: THREE.Vector3) => {
-            minX = Math.min(minX, v.x);
-            minY = Math.min(minY, v.y);
-            maxX = Math.max(maxX, v.x);
-            maxY = Math.max(maxY, v.y);
           });
           break;
         }
@@ -111,17 +273,10 @@ export function parseDXF(fileContent: string): ParsedDXF {
             center,
             radius: entity.radius
           });
-
-          // Update bounds
-          minX = Math.min(minX, center.x - entity.radius);
-          minY = Math.min(minY, center.y - entity.radius);
-          maxX = Math.max(maxX, center.x + entity.radius);
-          maxY = Math.max(maxY, center.y + entity.radius);
           break;
         }
 
         case 'ARC': {
-          // Convert arc to polyline
           const center = new THREE.Vector3(
             entity.center.x,
             entity.center.y,
@@ -133,16 +288,10 @@ export function parseDXF(fileContent: string): ParsedDXF {
           const vertices: THREE.Vector3[] = [];
 
           for (let i = 0; i <= segments; i++) {
-            const angle =
-              startAngle + (i / segments) * (endAngle - startAngle);
+            const angle = startAngle + (i / segments) * (endAngle - startAngle);
             const x = center.x + entity.radius * Math.cos(angle);
             const y = center.y + entity.radius * Math.sin(angle);
             vertices.push(new THREE.Vector3(x, y, 0));
-
-            minX = Math.min(minX, x);
-            minY = Math.min(minY, y);
-            maxX = Math.max(maxX, x);
-            maxY = Math.max(maxY, y);
           }
 
           entities.push({
@@ -155,18 +304,16 @@ export function parseDXF(fileContent: string): ParsedDXF {
         }
 
         default:
-          // Ignore unsupported entity types for MVP
           console.warn(`Unsupported entity type: ${entity.type}`);
       }
     });
   }
 
+  // Find closed shapes
+  const shapes = findClosedShapes(entities);
+
   return {
-    entities,
-    bounds: {
-      min: new THREE.Vector3(minX, minY, 0),
-      max: new THREE.Vector3(maxX, maxY, 0)
-    },
+    shapes,
     layers: Array.from(layers)
   };
 }
