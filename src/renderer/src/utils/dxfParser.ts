@@ -8,6 +8,8 @@ export interface DXFEntity {
   vertices?: THREE.Vector3[];
   center?: THREE.Vector3;
   radius?: number;
+  shape?: boolean; // DXF closed flag (70=1)
+  closed?: boolean; // Alternative property name
 }
 
 export interface ClosedShape {
@@ -62,9 +64,10 @@ function isSelfClosed(entity: DXFEntity): boolean {
     return true;
   }
   
-  // Check DXF shape flag (70=1 in DXF means closed)
-  // dxf-parser sets this as entity.shape = true
-  if ((entity as any).shape === true) {
+  // Check DXF shape/closed flag (70=1 in DXF means closed)
+  // dxf-parser may set this as entity.shape = true OR entity.closed = true
+  if (entity.shape === true || entity.closed === true) {
+    console.log('✓ Found closed polyline via shape flag');
     return true;
   }
   
@@ -72,7 +75,11 @@ function isSelfClosed(entity: DXFEntity): boolean {
   if ((entity.type === 'POLYLINE' || entity.type === 'ARC') && entity.vertices && entity.vertices.length >= 3) {
     const start = entity.vertices[0];
     const end = entity.vertices[entity.vertices.length - 1];
-    return pointsEqual(start, end);
+    const isClosed = pointsEqual(start, end);
+    if (isClosed) {
+      console.log('✓ Found closed polyline via geometric closure');
+    }
+    return isClosed;
   }
   
   return false;
@@ -250,11 +257,22 @@ export function parseDXF(fileContent: string): ParsedDXF {
             (v: any) => new THREE.Vector3(v.x, v.y, 0)
           );
 
+          // Debug: Log the raw entity to see all properties
+          console.log('POLYLINE entity:', {
+            type: entity.type,
+            shape: entity.shape,
+            closed: entity.closed,
+            flags: entity.flags,
+            vertexCount: vertices.length
+          });
+
           entities.push({
             type: 'POLYLINE',
             layer,
             color: entity.color,
-            vertices
+            vertices,
+            shape: entity.shape,  // Preserve closed flag
+            closed: entity.closed // Alternative property
           });
           break;
         }
