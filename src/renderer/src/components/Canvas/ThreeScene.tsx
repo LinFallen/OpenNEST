@@ -1,8 +1,9 @@
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Grid, Html, Line } from '@react-three/drei';
 import { makeStyles } from '@fluentui/react-components';
-import { useAppSelector } from '../../store/hooks';
-import { useEffect, useRef } from 'react';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { useEffect, useRef, useState } from 'react';
+import { selectPart, updatePartPosition } from '../../store/slices/projectSlice';
 import * as THREE from 'three';
 
 const useStyles = makeStyles({
@@ -95,34 +96,128 @@ function SheetBoundary({ width = 24, height = 12 }: SheetBoundaryProps) {
     );
 }
 
-// Render imported parts
-function ImportedParts() {
-    const parts = useAppSelector((state) => state.project.parts);
+// Interactive part component
+interface InteractivePartProps {
+    partId: string;
+    objects: THREE.Object3D[];
+    position: { x: number; y: number };
+    rotation: number;
+    selected: boolean;
+}
+
+function InteractivePart({ partId, objects, position, rotation, selected }: InteractivePartProps) {
     const groupRef = useRef<THREE.Group>(null);
+    const dispatch = useAppDispatch();
+    const { camera, gl } = useThree();
+    const [isDragging, setIsDragging] = useState(false);
+    const dragPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
+    const intersection = useRef(new THREE.Vector3());
 
     useEffect(() => {
         if (!groupRef.current) return;
 
-        // Clear existing children
+        // Clear and add objects
         while (groupRef.current.children.length > 0) {
             groupRef.current.remove(groupRef.current.children[0]);
         }
 
-        // Add all parts
-        parts.forEach((part) => {
-            const partGroup = new THREE.Group();
-            partGroup.position.set(part.position.x, part.position.y, 0);
-            partGroup.rotation.z = part.rotation;
-
-            part.objects.forEach((obj) => {
-                partGroup.add(obj.clone());
-            });
-
-            groupRef.current?.add(partGroup);
+        objects.forEach((obj) => {
+            const clonedObj = obj.clone();
+            // Change color if selected
+            if (clonedObj instanceof THREE.Line) {
+                const material = clonedObj.material as THREE.LineBasicMaterial;
+                material.color.setHex(selected ? 0x007acc : 0xe0e0e0);
+                material.linewidth = selected ? 2 : 1;
+            }
+            groupRef.current?.add(clonedObj);
         });
-    }, [parts]);
+    }, [objects, selected]);
 
-    return <group ref={groupRef} />;
+    const handlePointerDown = (e: any) => {
+        e.stopPropagation();
+        dispatch(selectPart(partId));
+        setIsDragging(true);
+        (gl.domElement as any).style.cursor = 'grabbing';
+    };
+
+    const handlePointerMove = (e: any) => {
+        if (!isDragging || !groupRef.current) return;
+        e.stopPropagation();
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2(
+            (e.clientX / gl.domElement.clientWidth) * 2 - 1,
+            -(e.clientY / gl.domElement.clientHeight) * 2 + 1
+        );
+
+        raycaster.setFromCamera(mouse, camera);
+        raycaster.ray.intersectPlane(dragPlane.current, intersection.current);
+
+        const newX = intersection.current.x;
+        const newY = intersection.current.y;
+
+        dispatch(updatePartPosition({ id: partId, x: newX, y: newY }));
+    };
+
+    const handlePointerUp = () => {
+        setIsDragging(false);
+        (gl.domElement as any).style.cursor = 'auto';
+    };
+
+    useEffect(() => {
+        if (isDragging) {
+            window.addEventListener('pointermove', handlePointerMove as any);
+            window.addEventListener('pointerup', handlePointerUp);
+            return () => {
+                window.removeEventListener('pointermove', handlePointerMove as any);
+                window.removeEventListener('pointerup', handlePointerUp);
+            };
+        }
+        return undefined;
+    }, [isDragging]);
+
+    return (
+        <group
+            ref={groupRef}
+            position={[position.x, position.y, 0]}
+            rotation={[0, 0, rotation]}
+            onPointerDown={handlePointerDown}
+        >
+            {/* Invisible hit box for easier clicking */}
+            <mesh visible={false}>
+                <boxGeometry args={[2, 2, 0.1]} />
+                <meshBasicMaterial />
+            </mesh>
+
+            {/* Selection indicator */}
+            {selected && (
+                <mesh position={[0, 0, -0.02]}>
+                    <boxGeometry args={[2.2, 2.2, 0.01]} />
+                    <meshBasicMaterial color="#007ACC" opacity={0.1} transparent />
+                </mesh>
+            )}
+        </group>
+    );
+}
+
+// Render imported parts
+function ImportedParts() {
+    const parts = useAppSelector((state) => state.project.parts);
+
+    return (
+        <group>
+            {parts.map((part) => (
+                <InteractivePart
+                    key={part.id}
+                    partId={part.id}
+                    objects={part.objects}
+                    position={part.position}
+                    rotation={part.rotation}
+                    selected={part.selected}
+                />
+            ))}
+        </group>
+    );
 }
 
 // Main 3D scene component
@@ -157,8 +252,14 @@ export const ThreeScene: React.FC = () => {
                     dampingFactor={0.05}
                     minDistance={5}
                     maxDistance={100}
-                    maxPolarAngle={Math.PI / 2.2} // Prevent camera from going too low
+                    maxPolarAngle={Math.PI / 2.2}
                     target={[0, 0, 0]}
+                    enablePan={true}
+                    mouseButtons={{
+                        LEFT: undefined, // Disable left-click rotation to allow selection
+                        MIDDLE: THREE.MOUSE.DOLLY,
+                        RIGHT: THREE.MOUSE.ROTATE
+                    }}
                 />
             </Canvas>
         </div>
