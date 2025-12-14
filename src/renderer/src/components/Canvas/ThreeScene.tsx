@@ -227,16 +227,17 @@ export const ThreeScene: React.FC = () => {
     return (
         <div className={styles.container}>
             <Canvas
+                orthographic
                 camera={{
-                    position: [20, 20, 20],
-                    fov: 50,
+                    position: [0, 0, 50],
+                    zoom: 20,
                     near: 0.1,
                     far: 1000
                 }}
             >
                 {/* Lighting */}
-                <ambientLight intensity={0.5} />
-                <directionalLight position={[10, 10, 5]} intensity={0.8} />
+                <ambientLight intensity={0.8} />
+                <directionalLight position={[0, 0, 10]} intensity={0.5} />
 
                 {/* Grid and axes */}
                 <InfiniteGrid />
@@ -246,19 +247,18 @@ export const ThreeScene: React.FC = () => {
                 {/* Render imported parts */}
                 <ImportedParts />
 
-                {/* Camera controls */}
+                {/* Camera controls - 2D view */}
                 <OrbitControls
                     enableDamping
                     dampingFactor={0.05}
-                    minDistance={5}
-                    maxDistance={100}
-                    maxPolarAngle={Math.PI / 2.2}
-                    target={[0, 0, 0]}
+                    enableRotate={false} // Disable rotation for 2D view
                     enablePan={true}
+                    zoomSpeed={0.5}
+                    panSpeed={0.5}
                     mouseButtons={{
-                        LEFT: undefined, // Disable left-click rotation to allow selection
+                        LEFT: THREE.MOUSE.PAN,
                         MIDDLE: THREE.MOUSE.DOLLY,
-                        RIGHT: THREE.MOUSE.ROTATE
+                        RIGHT: THREE.MOUSE.PAN
                     }}
                 />
             </Canvas>

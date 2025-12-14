@@ -154,14 +154,14 @@ export const TopBar: React.FC = () => {
 
                 <div className={styles.divider} />
 
-                <Tooltip content="Rectangle" relationship="label">
-                    <Button className={styles.toolBtn}>
+                <Tooltip content="Rectangle (Coming Soon)" relationship="label">
+                    <Button className={styles.toolBtn} disabled>
                         <Square24Regular />
                     </Button>
                 </Tooltip>
 
-                <Tooltip content="Circle" relationship="label">
-                    <Button className={styles.toolBtn}>
+                <Tooltip content="Circle (Coming Soon)" relationship="label">
+                    <Button className={styles.toolBtn} disabled>
                         <Circle24Regular />
                     </Button>
                 </Tooltip>
