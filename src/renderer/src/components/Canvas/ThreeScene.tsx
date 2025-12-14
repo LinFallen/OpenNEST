@@ -1,5 +1,5 @@
-import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls, Grid, Html, Line } from '@react-three/drei';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 import { makeStyles } from '@fluentui/react-components';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { useEffect, useRef, useState } from 'react';
@@ -11,69 +11,26 @@ const useStyles = makeStyles({
         width: '100%',
         height: '100%',
         position: 'relative',
-        backgroundColor: '#1a1a1a'
+        backgroundColor: '#1a1a1a',
+        // CSS Grid Pattern matching prototype exactly
+        backgroundImage: `
+      linear-gradient(#2D2D2D 1px, transparent 1px),
+      linear-gradient(90deg, #2D2D2D 1px, transparent 1px),
+      linear-gradient(#383838 1px, transparent 1px),
+      linear-gradient(90deg, #383838 1px, transparent 1px)
+    `,
+        backgroundSize: '20px 20px, 20px 20px, 100px 100px, 100px 100px',
+        backgroundPosition: 'center center'
+    },
+    canvasOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none'
     }
 });
-
-// Custom grid component matching our design spec
-function InfiniteGrid() {
-    return (
-        <Grid
-            args={[50, 50]}
-            cellSize={1}
-            cellThickness={0.8}
-            cellColor="#3E3E42"
-            sectionSize={5}
-            sectionThickness={1.5}
-            sectionColor="#6E7681"
-            fadeDistance={100}
-            fadeStrength={0.5}
-            followCamera={false}
-            infiniteGrid={true}
-        />
-    );
-}
-
-// Coordinate axes at origin
-function CoordinateAxes() {
-    return (
-        <group>
-            {/* X-axis (Red) - extended */}
-            <Line points={[[0, 0, 0], [15, 0, 0]]} color="#e05e5e" lineWidth={2} />
-            <Line points={[[0, 0, 0], [-15, 0, 0]]} color="#e05e5e" lineWidth={2} />
-
-            {/* Y-axis (Cyan) - extended */}
-            <Line points={[[0, 0, 0], [0, 15, 0]]} color="#56b6c2" lineWidth={2} />
-            <Line points={[[0, 0, 0], [0, -15, 0]]} color="#56b6c2" lineWidth={2} />
-
-            {/* Origin marker */}
-            <mesh position={[0, 0, 0]}>
-                <sphereGeometry args={[0.1, 16, 16]} />
-                <meshBasicMaterial color="#007ACC" />
-            </mesh>
-
-            {/* Coordinate labels */}
-            <Html position={[16, 0, 0]} center>
-                <div style={{ color: '#e05e5e', fontSize: '12px', fontWeight: 'bold' }}>X</div>
-            </Html>
-            <Html position={[0, 16, 0]} center>
-                <div style={{ color: '#56b6c2', fontSize: '12px', fontWeight: 'bold' }}>Y</div>
-            </Html>
-
-            {/* Scale markers every 5 units */}
-            {[-10, -5, 5, 10].map((x) => (
-                <Html key={`x${x}`} position={[x, -0.5, 0]} center>
-                    <div style={{ color: '#6E7681', fontSize: '10px' }}>{x * 100}</div>
-                </Html>
-            ))}
-            {[-10, -5, 5, 10].map((y) => (
-                <Html key={`y${y}`} position={[-0.5, y, 0]} center>
-                    <div style={{ color: '#6E7681', fontSize: '10px' }}>{y * 100}</div>
-                </Html>
-            ))}
-        </group>
-    );
-}
 
 // Material sheet boundary (the cutting area)
 interface SheetBoundaryProps {
@@ -93,28 +50,23 @@ function SheetBoundary({ width = 24, height = 12 }: SheetBoundaryProps) {
     return (
         <group>
             {/* Sheet rectangle outline */}
-            <Line points={points} color="#444" lineWidth={1.5} />
+            <line>
+                <bufferGeometry>
+                    <bufferAttribute
+                        attach="attributes-position"
+                        count={5}
+                        array={new Float32Array(points.flat())}
+                        itemSize={3}
+                    />
+                </bufferGeometry>
+                <lineBasicMaterial color="#444444" />
+            </line>
 
             {/* Semi-transparent sheet plane */}
-            <mesh position={[0, 0, -0.01]} rotation={[0, 0, 0]}>
+            <mesh position={[0, 0, -0.01]}>
                 <planeGeometry args={[width, height]} />
                 <meshBasicMaterial color="#ffffff" opacity={0.02} transparent />
             </mesh>
-
-            {/* Dimension label */}
-            <Html position={[-width / 2, height / 2 + 0.5, 0]} center>
-                <div
-                    style={{
-                        fontFamily: 'JetBrains Mono, monospace',
-                        fontSize: '11px',
-                        color: '#858585',
-                        whiteSpace: 'nowrap',
-                        pointerEvents: 'none'
-                    }}
-                >
-                    Sheet: {width * 100} x {height * 100} mm
-                </div>
-            </Html>
         </group>
     );
 }
@@ -243,6 +195,9 @@ function ImportedParts() {
     );
 }
 
+// Import useThree hook
+import { useThree } from '@react-three/fiber';
+
 // Main 3D scene component
 export const ThreeScene: React.FC = () => {
     const styles = useStyles();
@@ -262,19 +217,15 @@ export const ThreeScene: React.FC = () => {
                 <ambientLight intensity={0.8} />
                 <directionalLight position={[0, 0, 10]} intensity={0.5} />
 
-                {/* Grid and axes */}
-                <InfiniteGrid />
-                <CoordinateAxes />
+                {/* Sheet boundary and parts */}
                 <SheetBoundary width={24} height={12} />
-
-                {/* Render imported parts */}
                 <ImportedParts />
 
                 {/* Camera controls - 2D view */}
                 <OrbitControls
                     enableDamping
                     dampingFactor={0.05}
-                    enableRotate={false} // Disable rotation for 2D view
+                    enableRotate={false}
                     enablePan={true}
                     zoomSpeed={0.5}
                     panSpeed={0.5}
