@@ -1,5 +1,7 @@
 import { makeStyles } from '@fluentui/react-components';
 import { Document24Regular } from '@fluentui/react-icons';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { selectPart } from '../../store/slices/projectSlice';
 
 const useStyles = makeStyles({
     container: {
@@ -72,57 +74,53 @@ const useStyles = makeStyles({
         width: '10px',
         height: '10px',
         borderRadius: '2px'
+    },
+    emptyState: {
+        padding: '16px',
+        textAlign: 'center',
+        color: '#858585',
+        fontSize: '12px'
     }
 });
 
-interface FileItemData {
-    id: string;
-    name: string;
-    quantity: number;
-    material: string;
-    selected?: boolean;
-}
-
-interface ProjectExplorerProps {
-    files?: FileItemData[];
-    onFileSelect?: (id: string) => void;
-}
-
-export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
-    files = [],
-    onFileSelect
-}) => {
+export const ProjectExplorer: React.FC = () => {
     const styles = useStyles();
+    const dispatch = useAppDispatch();
+    const parts = useAppSelector((state) => state.project.parts);
 
-    const mockFiles: FileItemData[] = files.length
-        ? files
-        : [
-            { id: '1', name: 'bracket_mount.dxf', quantity: 4, material: 'Steel 2mm', selected: true },
-            { id: '2', name: 'base_plate.dxf', quantity: 1, material: 'Steel 2mm' },
-            { id: '3', name: 'spacer_ring.dxf', quantity: 12, material: 'Steel 2mm' }
-        ];
+    const handleFileSelect = (id: string) => {
+        dispatch(selectPart(id));
+    };
 
     return (
         <div className={styles.container}>
             <div className={styles.panelHeader}>Project Explorer</div>
             <div className={styles.fileList}>
-                {mockFiles.map((file) => (
-                    <div
-                        key={file.id}
-                        className={`${styles.fileItem} ${file.selected ? styles.fileItemSelected : ''}`}
-                        onClick={() => onFileSelect?.(file.id)}
-                    >
-                        <div className={styles.fileIcon}>
-                            <Document24Regular style={{ width: '14px', height: '14px' }} />
-                        </div>
-                        <div>
-                            <div className={styles.fileName}>{file.name}</div>
-                            <div className={styles.fileInfo}>
-                                QTY: {file.quantity} • {file.material}
+                {parts.length === 0 ? (
+                    <div className={styles.emptyState}>
+                        No files imported yet.
+                        <br />
+                        Click the import button to get started.
+                    </div>
+                ) : (
+                    parts.map((part) => (
+                        <div
+                            key={part.id}
+                            className={`${styles.fileItem} ${part.selected ? styles.fileItemSelected : ''}`}
+                            onClick={() => handleFileSelect(part.id)}
+                        >
+                            <div className={styles.fileIcon}>
+                                <Document24Regular style={{ width: '14px', height: '14px' }} />
+                            </div>
+                            <div>
+                                <div className={styles.fileName}>{part.name}</div>
+                                <div className={styles.fileInfo}>
+                                    QTY: {part.quantity} • {part.material}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                )}
             </div>
 
             <div className={styles.layersSection}>

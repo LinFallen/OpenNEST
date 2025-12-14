@@ -4,8 +4,14 @@ import {
     ArrowMove24Regular,
     Square24Regular,
     Circle24Regular,
-    GridDots24Regular
+    GridDots24Regular,
+    ArrowUpload24Regular
 } from '@fluentui/react-icons';
+import { useRef } from 'react';
+import { useAppDispatch } from '../../store/hooks';
+import { addPart } from '../../store/slices/projectSlice';
+import { parseDXF, entitiesToThreeObjects } from '../../utils/dxfParser';
+import { v4 as uuidv4 } from 'uuid';
 
 const useStyles = makeStyles({
     container: {
@@ -61,11 +67,52 @@ const useStyles = makeStyles({
         fontSize: '11px',
         color: '#858585',
         marginRight: '10px'
+    },
+    hiddenInput: {
+        display: 'none'
     }
 });
 
 export const TopBar: React.FC = () => {
     const styles = useStyles();
+    const dispatch = useAppDispatch();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const content = await file.text();
+            const parsed = parseDXF(content);
+            const objects = entitiesToThreeObjects(parsed.entities);
+
+            const newPart = {
+                id: uuidv4(),
+                name: file.name,
+                entities: parsed.entities,
+                objects,
+                bounds: parsed.bounds,
+                position: { x: 0, y: 0 },
+                rotation: 0,
+                layer: parsed.layers[0] || '0',
+                material: 'Steel 2mm',
+                quantity: 1,
+                selected: false
+            };
+
+            dispatch(addPart(newPart));
+            console.log('Imported DXF:', file.name, parsed);
+        } catch (error) {
+            console.error('Failed to import DXF:', error);
+            alert('Failed to import DXF file. Please check the file format.');
+        }
+
+        // Reset input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
 
     return (
         <div className={styles.container}>
@@ -75,6 +122,24 @@ export const TopBar: React.FC = () => {
             </div>
 
             <div className={styles.toolbar}>
+                <Tooltip content="Import DXF" relationship="label">
+                    <Button
+                        className={styles.toolBtn}
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <ArrowUpload24Regular />
+                    </Button>
+                </Tooltip>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".dxf"
+                    className={styles.hiddenInput}
+                    onChange={handleFileImport}
+                />
+
+                <div className={styles.divider} />
+
                 <Tooltip content="Select" relationship="label">
                     <Button className={`${styles.toolBtn} ${styles.toolBtnActive}`}>
                         <Navigation24Regular />

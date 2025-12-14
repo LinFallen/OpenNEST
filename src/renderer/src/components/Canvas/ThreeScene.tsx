@@ -1,6 +1,9 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Grid, Html, Line } from '@react-three/drei';
 import { makeStyles } from '@fluentui/react-components';
+import { useAppSelector } from '../../store/hooks';
+import { useEffect, useRef } from 'react';
+import * as THREE from 'three';
 
 const useStyles = makeStyles({
     container: {
@@ -35,17 +38,9 @@ function CoordinateAxes() {
     return (
         <group>
             {/* X-axis (Red) */}
-            <Line
-                points={[[0, 0, 0], [5, 0, 0]]}
-                color="#e05e5e"
-                lineWidth={2}
-            />
+            <Line points={[[0, 0, 0], [5, 0, 0]]} color="#e05e5e" lineWidth={2} />
             {/* Y-axis (Cyan) */}
-            <Line
-                points={[[0, 0, 0], [0, 5, 0]]}
-                color="#56b6c2"
-                lineWidth={2}
-            />
+            <Line points={[[0, 0, 0], [0, 5, 0]]} color="#56b6c2" lineWidth={2} />
 
             {/* Origin marker */}
             <mesh position={[0, 0, 0]}>
@@ -74,11 +69,7 @@ function SheetBoundary({ width = 24, height = 12 }: SheetBoundaryProps) {
     return (
         <group>
             {/* Sheet rectangle outline */}
-            <Line
-                points={points}
-                color="#444"
-                lineWidth={1.5}
-            />
+            <Line points={points} color="#444" lineWidth={1.5} />
 
             {/* Semi-transparent sheet plane */}
             <mesh position={[0, 0, -0.01]} rotation={[0, 0, 0]}>
@@ -104,6 +95,36 @@ function SheetBoundary({ width = 24, height = 12 }: SheetBoundaryProps) {
     );
 }
 
+// Render imported parts
+function ImportedParts() {
+    const parts = useAppSelector((state) => state.project.parts);
+    const groupRef = useRef<THREE.Group>(null);
+
+    useEffect(() => {
+        if (!groupRef.current) return;
+
+        // Clear existing children
+        while (groupRef.current.children.length > 0) {
+            groupRef.current.remove(groupRef.current.children[0]);
+        }
+
+        // Add all parts
+        parts.forEach((part) => {
+            const partGroup = new THREE.Group();
+            partGroup.position.set(part.position.x, part.position.y, 0);
+            partGroup.rotation.z = part.rotation;
+
+            part.objects.forEach((obj) => {
+                partGroup.add(obj.clone());
+            });
+
+            groupRef.current?.add(partGroup);
+        });
+    }, [parts]);
+
+    return <group ref={groupRef} />;
+}
+
 // Main 3D scene component
 export const ThreeScene: React.FC = () => {
     const styles = useStyles();
@@ -126,6 +147,9 @@ export const ThreeScene: React.FC = () => {
                 <InfiniteGrid />
                 <CoordinateAxes />
                 <SheetBoundary width={24} height={12} />
+
+                {/* Render imported parts */}
+                <ImportedParts />
 
                 {/* Camera controls */}
                 <OrbitControls
