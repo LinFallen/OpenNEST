@@ -7,9 +7,9 @@
 - [x] **Phase 2: UI Foundation** <!-- id: 4 -->
     - [x] Implement Global Theme (Dark Engineering) & Layout Shell <!-- id: 5 -->
     - [x] Create core UI components (Sidebar, TopBar, StatusBar, PropertiesPanel) <!-- id: 6 -->
-- [ ] **Phase 3: Graphics Core (Three.js)** <!-- id: 7 -->
-    - [ ] Initialize Infinite Canvas (Grid, Axes, Camera Controls) <!-- id: 8 -->
-    - [ ] Implement DXF Import & Rendering <!-- id: 9 -->
+- [/] **Phase 3: Graphics Core (Three.js)** <!-- id: 7 -->
+    - [x] Initialize Infinite Canvas (Grid, Axes, Camera Controls) <!-- id: 8 -->
+    - [/] Implement DXF Import & Rendering <!-- id: 9 -->
     - [ ] Implement Selection & Transform controls (Drag, Rotate) <!-- id: 10 -->
 - [ ] **Phase 4: Logic Core** <!-- id: 11 -->
     - [ ] Define Redux State Slice for Parts and Sheets <!-- id: 12 -->

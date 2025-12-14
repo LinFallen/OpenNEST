@@ -1,0 +1,224 @@
+import DxfParser from 'dxf-parser';
+import * as THREE from 'three';
+
+export interface DXFEntity {
+  type: string;
+  layer: string;
+  color?: number;
+  vertices?: THREE.Vector3[];
+  center?: THREE.Vector3;
+  radius?: number;
+}
+
+export interface ParsedDXF {
+  entities: DXFEntity[];
+  bounds: {
+    min: THREE.Vector3;
+    max: THREE.Vector3;
+  };
+  layers: string[];
+}
+
+/**
+ * Parse DXF file content and convert to Three.js-ready format
+ */
+export function parseDXF(fileContent: string): ParsedDXF {
+  const parser = new DxfParser();
+  let dxf;
+
+  try {
+    dxf = parser.parseSync(fileContent);
+  } catch (err) {
+    console.error('DXF parse error:', err);
+    throw new Error('Failed to parse DXF file');
+  }
+
+  const entities: DXFEntity[] = [];
+  const layers = new Set<string>();
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+
+  // Process entities
+  if (dxf.entities) {
+    dxf.entities.forEach((entity: any) => {
+      const layer = entity.layer || '0';
+      layers.add(layer);
+
+      switch (entity.type) {
+        case 'LINE': {
+          const start = new THREE.Vector3(
+            entity.vertices[0].x,
+            entity.vertices[0].y,
+            0
+          );
+          const end = new THREE.Vector3(
+            entity.vertices[1].x,
+            entity.vertices[1].y,
+            0
+          );
+
+          entities.push({
+            type: 'LINE',
+            layer,
+            color: entity.color,
+            vertices: [start, end]
+          });
+
+          // Update bounds
+          minX = Math.min(minX, start.x, end.x);
+          minY = Math.min(minY, start.y, end.y);
+          maxX = Math.max(maxX, start.x, end.x);
+          maxY = Math.max(maxY, start.y, end.y);
+          break;
+        }
+
+        case 'LWPOLYLINE':
+        case 'POLYLINE': {
+          const vertices = entity.vertices.map(
+            (v: any) => new THREE.Vector3(v.x, v.y, 0)
+          );
+
+          entities.push({
+            type: 'POLYLINE',
+            layer,
+            color: entity.color,
+            vertices
+          });
+
+          // Update bounds
+          vertices.forEach((v: THREE.Vector3) => {
+            minX = Math.min(minX, v.x);
+            minY = Math.min(minY, v.y);
+            maxX = Math.max(maxX, v.x);
+            maxY = Math.max(maxY, v.y);
+          });
+          break;
+        }
+
+        case 'CIRCLE': {
+          const center = new THREE.Vector3(
+            entity.center.x,
+            entity.center.y,
+            0
+          );
+
+          entities.push({
+            type: 'CIRCLE',
+            layer,
+            color: entity.color,
+            center,
+            radius: entity.radius
+          });
+
+          // Update bounds
+          minX = Math.min(minX, center.x - entity.radius);
+          minY = Math.min(minY, center.y - entity.radius);
+          maxX = Math.max(maxX, center.x + entity.radius);
+          maxY = Math.max(maxY, center.y + entity.radius);
+          break;
+        }
+
+        case 'ARC': {
+          // Convert arc to polyline
+          const center = new THREE.Vector3(
+            entity.center.x,
+            entity.center.y,
+            0
+          );
+          const startAngle = (entity.startAngle * Math.PI) / 180;
+          const endAngle = (entity.endAngle * Math.PI) / 180;
+          const segments = 32;
+          const vertices: THREE.Vector3[] = [];
+
+          for (let i = 0; i <= segments; i++) {
+            const angle =
+              startAngle + (i / segments) * (endAngle - startAngle);
+            const x = center.x + entity.radius * Math.cos(angle);
+            const y = center.y + entity.radius * Math.sin(angle);
+            vertices.push(new THREE.Vector3(x, y, 0));
+
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+          }
+
+          entities.push({
+            type: 'ARC',
+            layer,
+            color: entity.color,
+            vertices
+          });
+          break;
+        }
+
+        default:
+          // Ignore unsupported entity types for MVP
+          console.warn(`Unsupported entity type: ${entity.type}`);
+      }
+    });
+  }
+
+  return {
+    entities,
+    bounds: {
+      min: new THREE.Vector3(minX, minY, 0),
+      max: new THREE.Vector3(maxX, maxY, 0)
+    },
+    layers: Array.from(layers)
+  };
+}
+
+/**
+ * Convert DXF entities to Three.js Line objects
+ */
+export function entitiesToThreeObjects(entities: DXFEntity[]): THREE.Object3D[] {
+  const objects: THREE.Object3D[] = [];
+
+  entities.forEach((entity) => {
+    let geometry: THREE.BufferGeometry | null = null;
+
+    switch (entity.type) {
+      case 'LINE':
+      case 'POLYLINE':
+      case 'ARC':
+        if (entity.vertices) {
+          geometry = new THREE.BufferGeometry().setFromPoints(entity.vertices);
+        }
+        break;
+
+      case 'CIRCLE':
+        if (entity.center && entity.radius) {
+          const curve = new THREE.EllipseCurve(
+            entity.center.x,
+            entity.center.y,
+            entity.radius,
+            entity.radius,
+            0,
+            2 * Math.PI,
+            false,
+            0
+          );
+          const points = curve.getPoints(64);
+          geometry = new THREE.BufferGeometry().setFromPoints(
+            points.map((p) => new THREE.Vector3(p.x, p.y, 0))
+          );
+        }
+        break;
+    }
+
+    if (geometry) {
+      const material = new THREE.LineBasicMaterial({
+        color: entity.color || 0xe0e0e0,
+        linewidth: 1
+      });
+      const line = new THREE.Line(geometry, material);
+      line.userData = { layer: entity.layer };
+      objects.push(line);
+    }
+  });
+
+  return objects;
+}
