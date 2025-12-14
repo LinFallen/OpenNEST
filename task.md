@@ -12,10 +12,20 @@
     - [x] Implement DXF Import & Rendering <!-- id: 9 -->
     - [x] Implement Selection & Transform controls (Drag, Rotate) <!-- id: 10 -->
 - [ ] **Phase 4: Logic Core** <!-- id: 11 -->
-    - [ ] Define Redux State Slice for Parts and Sheets <!-- id: 12 -->
+    - [x] Define Redux State Slice for Parts and Sheets <!-- id: 12 -->
     - [ ] Implement Basic Nesting Algorithm (Rectangular packer MVP) <!-- id: 13 -->
     - [ ] Implement G-Code Generator Logic <!-- id: 14 -->
-- [ ] **Phase 5: Refinement** <!-- id: 15 -->
-    - [ ] Bind UI inputs to State (Properties Panel) <!-- id: 16 -->
-    - [ ] Add Application Menu & Native Integrations <!-- id: 17 -->
-    - [ ] End-to-End Verification <!-- id: 18 -->
+- [ ] **Phase 5: UI Enhancements** <!-- id: 15 -->
+    - [ ] Implement Rectangle Drawing Tool <!-- id: 16 -->
+    - [ ] Implement Circle Drawing Tool <!-- id: 17 -->
+    - [ ] Implement Pan Tool (dedicated tool mode) <!-- id: 18 -->
+    - [ ] Connect StatusBar to show real-time cursor coordinates <!-- id: 19 -->
+    - [ ] Add context menu for right-click operations <!-- id: 20 -->
+    - [ ] Implement copy/paste/duplicate functionality <!-- id: 21 -->
+- [ ] **Phase 6: Refinement & Polish** <!-- id: 22 -->
+    - [ ] Bind all PropertiesPanel inputs to State <!-- id: 23 -->
+    - [ ] Add Application Menu & File operations (New, Open, Save) <!-- id: 24 -->
+    - [ ] Implement undo/redo functionality <!-- id: 25 -->
+    - [ ] Add keyboard shortcuts <!-- id: 26 -->
+    - [ ] Add export options (DXF, PDF, SVG) <!-- id: 27 -->
+    - [ ] End-to-End Verification & Testing <!-- id: 28 -->

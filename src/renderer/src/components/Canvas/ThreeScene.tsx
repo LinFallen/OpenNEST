@@ -19,15 +19,15 @@ const useStyles = makeStyles({
 function InfiniteGrid() {
     return (
         <Grid
-            args={[100, 100]}
-            cellSize={0.2}
-            cellThickness={0.5}
-            cellColor="#2D2D2D"
-            sectionSize={1}
-            sectionThickness={1}
-            sectionColor="#383838"
-            fadeDistance={50}
-            fadeStrength={1}
+            args={[50, 50]}
+            cellSize={1}
+            cellThickness={0.8}
+            cellColor="#3E3E42"
+            sectionSize={5}
+            sectionThickness={1.5}
+            sectionColor="#6E7681"
+            fadeDistance={100}
+            fadeStrength={0.5}
             followCamera={false}
             infiniteGrid={true}
         />
@@ -38,16 +38,39 @@ function InfiniteGrid() {
 function CoordinateAxes() {
     return (
         <group>
-            {/* X-axis (Red) */}
-            <Line points={[[0, 0, 0], [5, 0, 0]]} color="#e05e5e" lineWidth={2} />
-            {/* Y-axis (Cyan) */}
-            <Line points={[[0, 0, 0], [0, 5, 0]]} color="#56b6c2" lineWidth={2} />
+            {/* X-axis (Red) - extended */}
+            <Line points={[[0, 0, 0], [15, 0, 0]]} color="#e05e5e" lineWidth={2} />
+            <Line points={[[0, 0, 0], [-15, 0, 0]]} color="#e05e5e" lineWidth={2} />
+
+            {/* Y-axis (Cyan) - extended */}
+            <Line points={[[0, 0, 0], [0, 15, 0]]} color="#56b6c2" lineWidth={2} />
+            <Line points={[[0, 0, 0], [0, -15, 0]]} color="#56b6c2" lineWidth={2} />
 
             {/* Origin marker */}
             <mesh position={[0, 0, 0]}>
-                <sphereGeometry args={[0.05, 16, 16]} />
+                <sphereGeometry args={[0.1, 16, 16]} />
                 <meshBasicMaterial color="#007ACC" />
             </mesh>
+
+            {/* Coordinate labels */}
+            <Html position={[16, 0, 0]} center>
+                <div style={{ color: '#e05e5e', fontSize: '12px', fontWeight: 'bold' }}>X</div>
+            </Html>
+            <Html position={[0, 16, 0]} center>
+                <div style={{ color: '#56b6c2', fontSize: '12px', fontWeight: 'bold' }}>Y</div>
+            </Html>
+
+            {/* Scale markers every 5 units */}
+            {[-10, -5, 5, 10].map((x) => (
+                <Html key={`x${x}`} position={[x, -0.5, 0]} center>
+                    <div style={{ color: '#6E7681', fontSize: '10px' }}>{x * 100}</div>
+                </Html>
+            ))}
+            {[-10, -5, 5, 10].map((y) => (
+                <Html key={`y${y}`} position={[-0.5, y, 0]} center>
+                    <div style={{ color: '#6E7681', fontSize: '10px' }}>{y * 100}</div>
+                </Html>
+            ))}
         </group>
     );
 }
