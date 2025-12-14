@@ -240,7 +240,6 @@ export const ThreeScene: React.FC = () => {
                     <ambientLight intensity={0.8} />
                     <directionalLight position={[0, 0, 10]} intensity={0.5} />
 
-                    <CoordinateAxes />
                     <SheetBoundary width={24} height={12} />
                     <ImportedParts />
 

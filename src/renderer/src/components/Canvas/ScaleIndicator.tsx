@@ -6,9 +6,9 @@ const useStyles = makeStyles({
         bottom: '30px',
         left: '30px',
         display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        padding: '12px',
+        alignItems: 'flex-end',
+        gap: '0',
+        padding: '8px',
         backgroundColor: 'rgba(37, 37, 38, 0.9)',
         border: '1px solid #3E3E42',
         borderRadius: '4px',
@@ -18,40 +18,66 @@ const useStyles = makeStyles({
         pointerEvents: 'none',
         userSelect: 'none'
     },
-    axis: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-    },
-    xAxis: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px'
+    axes: {
+        position: 'relative',
+        width: '80px',
+        height: '80px'
     },
     yAxis: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px'
+        position: 'absolute',
+        left: '10px',
+        bottom: '10px',
+        width: '2px',
+        height: '60px',
+        backgroundColor: '#56B6C2'
     },
-    arrow: {
+    xAxis: {
+        position: 'absolute',
+        left: '10px',
+        bottom: '10px',
         width: '60px',
         height: '2px',
-        position: 'relative'
+        backgroundColor: '#E05E5E'
     },
-    arrowHead: {
+    yArrow: {
         position: 'absolute',
-        right: '0',
-        top: '50%',
+        left: '10px',
+        top: '-2px',
+        transform: 'translateX(-50%)',
+        width: '0',
+        height: '0',
+        borderLeft: '4px solid transparent',
+        borderRight: '4px solid transparent',
+        borderBottom: '6px solid #56B6C2'
+    },
+    xArrow: {
+        position: 'absolute',
+        right: '-2px',
+        bottom: '10px',
         transform: 'translateY(-50%)',
         width: '0',
         height: '0',
-        borderLeft: '6px solid currentColor',
-        borderTop: '3px solid transparent',
-        borderBottom: '3px solid transparent'
+        borderTop: '4px solid transparent',
+        borderBottom: '4px solid transparent',
+        borderLeft: '6px solid #E05E5E'
     },
-    label: {
+    yLabel: {
+        position: 'absolute',
+        left: '10px',
+        top: '-18px',
+        transform: 'translateX(-50%)',
+        color: '#56B6C2',
         fontWeight: '600',
-        minWidth: '15px'
+        fontSize: '12px'
+    },
+    xLabel: {
+        position: 'absolute',
+        right: '-18px',
+        bottom: '10px',
+        transform: 'translateY(50%)',
+        color: '#E05E5E',
+        fontWeight: '600',
+        fontSize: '12px'
     }
 });
 
@@ -60,26 +86,16 @@ export const ScaleIndicator: React.FC = () => {
 
     return (
         <div className={styles.container}>
-            {/* X Axis */}
-            <div className={styles.axis}>
-                <span className={styles.label} style={{ color: '#E05E5E' }}>X</span>
-                <div style={{ color: '#E05E5E' }}>
-                    <div className={styles.arrow} style={{ backgroundColor: '#E05E5E' }}>
-                        <div className={styles.arrowHead} />
-                    </div>
-                </div>
-                <span>100mm</span>
-            </div>
+            <div className={styles.axes}>
+                {/* Y Axis */}
+                <div className={styles.yAxis} />
+                <div className={styles.yArrow} />
+                <div className={styles.yLabel}>Y</div>
 
-            {/* Y Axis */}
-            <div className={styles.axis}>
-                <span className={styles.label} style={{ color: '#56B6C2' }}>Y</span>
-                <div style={{ color: '#56B6C2' }}>
-                    <div className={styles.arrow} style={{ backgroundColor: '#56B6C2' }}>
-                        <div className={styles.arrowHead} />
-                    </div>
-                </div>
-                <span>100mm</span>
+                {/* X Axis */}
+                <div className={styles.xAxis} />
+                <div className={styles.xArrow} />
+                <div className={styles.xLabel}>X</div>
             </div>
         </div>
     );
